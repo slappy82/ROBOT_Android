@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private final byte STOP = 4;                        // This will stop steppers from rotating
     private final byte REMOTE = 1;                      // Send this byte to tell robot it is to be controlled from android
     private final byte SELF = 0;                        // Tell robot to switch to AI routine until toggled 1
-    private final String ROBOT_NAME = "HMSoft";         // Name of bluetooth module connected to robot
+    private final String ROBOT_NAME = "HMSOFT";         // Name of bluetooth module connected to robot
     private final String ROBOT_MAC = "18:62:E4:3E:79:B2";    // MAC of above
     private final long SCAN_DURATION = 5000;           // The BLE discovery scan duration length
 
@@ -74,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
         button_Exit.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 tidyUp();
+                //finishAndRemoveTask();
                 System.exit(0);
             }
         });
@@ -158,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
     // Puts the values into byte array for transfer to robot. Control toggle will override using 0,0 to relieve or 1,1 to regain control
     private void packageDirection(byte leftMotor, byte rightMotor) {
            byte[] outgoing = new byte[2];
@@ -169,17 +171,18 @@ public class MainActivity extends AppCompatActivity {
     final ScanCallback newCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, final ScanResult result) {
-            //super.onScanResult(callbackType, result);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if (result.getDevice().getName().equalsIgnoreCase(ROBOT_NAME)
-                                    && result.getDevice().getAddress().equalsIgnoreCase(ROBOT_MAC) //){
-                                    && !result.getDevice().equals(btDevice_HMSoft)) {
-                        btDevice_HMSoft = result.getDevice();
-                        displayDiscoveredConnection(result.getDevice().getName());
-                        newLEScan(false);
-                        connectDevice();
+                    if (result != null) {
+                            if (btDevice_HMSoft == null) {
+                                if (result.getDevice().getName().equalsIgnoreCase(ROBOT_NAME)) {
+                                    btDevice_HMSoft = result.getDevice();
+                                    displayDiscoveredConnection(result.getDevice().getName());
+                                    newLEScan(false);
+                                    connectDevice();
+                                }
+                            }
                     }
                 }
             });
@@ -209,6 +212,7 @@ public class MainActivity extends AppCompatActivity {
             notScanning = true;
         }
     }
+
     // Quick display of callback results
     private void displayDiscoveredConnection(String s) {
         Snackbar.make(findViewById(R.id.button_Connect), s, Snackbar.LENGTH_SHORT).show();
@@ -257,6 +261,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
     // Callback for BLE scanner for older android version - before API 21
     /*final BluetoothAdapter.LeScanCallback oldCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
@@ -290,4 +296,23 @@ public class MainActivity extends AppCompatActivity {
             btAdapter.startLeScan(oldCallback);
         }
     }*/
+    // Start BLE discovery scan using newer (API 21) library
+   /* private void newLEScan() {
+        if (notScanning) {
+            notScanning = false;
+            Snackbar.make(findViewById(R.id.switch_Control), "Starting Scan...", Snackbar.LENGTH_SHORT).show();
+            Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    btScanner.stopScan(newCallback);
+                    Snackbar.make(findViewById(R.id.switch_Control), "Scan Complete", Snackbar.LENGTH_SHORT).show();
+                    notScanning = true;
+
+                }
+            }, SCAN_DURATION);
+            btScanner.startScan(newCallback);
+        }
+    }*/
+
 }
