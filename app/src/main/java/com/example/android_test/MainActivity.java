@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     // Global variables and objects
     private BluetoothAdapter btAdapter;                 // BT Adapter object for use of BT (parent)
     private BluetoothLeScanner btScanner;               // BT object inherited from Adapter for BLE scans
-    private int lastAction = 0;                         // Used to help identify button down and button up
+    private int lastAction = -1;                         // Used to help identify button down and button up
     private boolean notScanning = true;                 // Stop unwanted button presses from bricking phone
     private BluetoothDevice btDevice_HMSoft = null;
     private BluetoothGatt btGatt;
@@ -310,6 +310,9 @@ public class MainActivity extends AppCompatActivity {
     private void transferData(byte[] bb) {
         btGattCharacteristic.setValue(bb);
         btGatt.writeCharacteristic(btGattCharacteristic);
+        // DEBUG:
+        System.out.println("Data written to characteristic:");
+        System.out.println(bb[0] + "  " + bb[1]);
     }
 
     // Quick display of callback results
