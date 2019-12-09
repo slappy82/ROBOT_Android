@@ -299,7 +299,6 @@ public class MainActivity extends AppCompatActivity {
         byte[] outgoing = new byte[2];
         outgoing[0] = leftMotor;
         outgoing[1] = rightMotor;
-        //  TODO: TEST THIS!!!!!!!!!!!!!!!!!!!!!!!
         transferData(outgoing);
     }
     // Put data into characteristing and write to device
@@ -310,7 +309,7 @@ public class MainActivity extends AppCompatActivity {
     private void transferData(byte[] bb) {
         btGattCharacteristic.setValue(bb);
         btGatt.writeCharacteristic(btGattCharacteristic);
-        // DEBUG:
+        // FOR DEBUGGING:
         System.out.println("Data written to characteristic:");
         System.out.println(bb[0] + "  " + bb[1]);
     }
