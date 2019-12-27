@@ -1,6 +1,8 @@
 // Campbell Maxwell
 // November 2019 - Present
 
+// TODO: Lots of refactoring, break out some classes etc
+
 package com.example.android_test;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -47,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     // Global variables and objects
     private BluetoothAdapter btAdapter;                 // BT Adapter object for use of BT (parent)
     private BluetoothLeScanner btScanner;               // BT object inherited from Adapter for BLE scans
-    private int lastAction = -1;                         // Used to help identify button down and button up
+    private int lastAction = -1;                        // Used to help identify button down and button up
     private boolean notScanning = true;                 // Stop unwanted button presses from bricking phone
     private BluetoothDevice btDevice_HMSoft = null;
     private BluetoothGatt btGatt;
@@ -63,12 +65,12 @@ public class MainActivity extends AppCompatActivity {
     private final String ROBOT_NAME = "HMSOFT";                 // Name of bluetooth module connected to robot
     private final String ROBOT_MAC = "18:62:E4:3E:79:B2";       // MAC of above
     private final long SCAN_DURATION = 5000;                    // The BLE discovery scan duration length
-    private final long UUID_MSB = 0x0000ffe100001000L;          // First 64 bits of custom char. UUID
-    private final long UUID_LSB = 0x800000805f9b34fbL;          // Last 64 bits of custom char. UUID
-    private final UUID CUSTOM_CHARACTERISTIC = new UUID(UUID_MSB, UUID_LSB);
-    private final long UUID_MSB_DESC = 0x0000290200001000L;
-    private final long UUID_LSB_DESC = 0x800000805f9b34fbL;
-    private final UUID CUSTOM_DESCRIPTOR = new UUID(UUID_MSB_DESC, UUID_LSB_DESC);
+    //private final long UUID_MSB = 0x0000ffe100001000L;          // First 64 bits of custom char. UUID
+    //private final long UUID_LSB = 0x800000805f9b34fbL;          // Last 64 bits of custom char. UUID
+    private final UUID CUSTOM_CHARACTERISTIC = new UUID(0x0000ffe100001000L, 0x800000805f9b34fbL);
+    //private final long UUID_MSB_DESC = 0x0000290200001000L;
+    //private final long UUID_LSB_DESC = 0x800000805f9b34fbL;
+    private final UUID CUSTOM_DESCRIPTOR = new UUID(0x0000290200001000L, 0x800000805f9b34fbL);
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -176,8 +178,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
-
+    
     // Callback object for newLEScan to pass information from BT device about advertising devices
     final ScanCallback newCallback = new ScanCallback() {
         @Override
@@ -242,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
         final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        // TODO: Protection for a null return
         btAdapter = bluetoothManager.getAdapter();
         btScanner = btAdapter.getBluetoothLeScanner();
         if (!btAdapter.isEnabled()) {
@@ -289,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             }
         }
+        // TODO: Some protection for null return
         BluetoothGattDescriptor descriptor = btGattCharacteristic.getDescriptor(CUSTOM_DESCRIPTOR);
         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
         btGatt.writeDescriptor(descriptor);
@@ -299,9 +302,12 @@ public class MainActivity extends AppCompatActivity {
         byte[] outgoing = new byte[2];
         outgoing[0] = leftMotor;
         outgoing[1] = rightMotor;
-        transferData(outgoing);
+        // TODO: More protection here eg check for btGatt connection
+        if (btGattCharacteristic != null) {
+            transferData(outgoing);
+        }
     }
-    // Put data into characteristing and write to device
+    // Put data into characteristic and write to device
     private void transferData(String s) {
         btGattCharacteristic.setValue(s);
         btGatt.writeCharacteristic(btGattCharacteristic);
@@ -341,6 +347,7 @@ public class MainActivity extends AppCompatActivity {
         button_Right.setClickable(bool);
         button_Right.setEnabled(bool);
     }
+
     // Method to get all UUIDs for service / characteristic / descriptors and write to system.out
     private void getAllUUID() {
         List<BluetoothGattService> serviceList = btGatt.getServices(); // get list of services on HM-10
@@ -359,7 +366,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
     // Callback for BLE scanner for older android version - before API 21
     /*final BluetoothAdapter.LeScanCallback oldCallback = new BluetoothAdapter.LeScanCallback() {
         @Override
@@ -410,5 +416,4 @@ public class MainActivity extends AppCompatActivity {
             }, SCAN_DURATION);
             btScanner.startScan(newCallback);
         }*/
-
 }
